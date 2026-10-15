@@ -14,8 +14,6 @@ const xVarByFilter = { Year: 'Month', Months: 'Day' };
 const weatherKeys = { Precipitation: "precipitation", Snow: "snow" };
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun","Jul", "Aug", "Sep"];
-const days = Array.from({ length: 31 }, (_, i) => i + 1);
-
 const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
 let selectedState = null;
@@ -158,10 +156,10 @@ function setupSelector(){
     xVar = xVarByFilter[filterVar];
 
     if (filterVar == "Year"){
-        d3.select('#slider').style('display', 'block');
+        d3.select('#slider').style('display', 'none');
     }
     else {
-        d3.select('#slider').style('display', 'none');
+        d3.select('#slider').style('display', 'block');
     }
 
 }
@@ -174,7 +172,7 @@ function updateAxes(flat){
     svg.selectAll('.labels').remove()
 
     let xValues;
-    if (filterVar == "Year"){
+    if (filterVar === "Year"){
         xValues = monthNames
     }
     else {
