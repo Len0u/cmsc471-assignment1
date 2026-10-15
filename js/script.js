@@ -18,8 +18,9 @@ const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
 const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
+let selectedState = null;
 const t = 1000; // 1000ms = 1 second
-let size = 10  // Size of the legend squares
+let size = 10;  // Size of the legend squares
 let label;
 
 
@@ -237,12 +238,6 @@ function updateVis(){
         }))
     ).flat();
 
-    console.log(flat.slice(0, 10));
-    console.log("Filter:", filterVar);
-    console.log("First date:", flat[0]?.date);
-    console.log("Is Date:", flat[0]?.date instanceof Date);
-    console.log("axisBottom:", typeof d3.axisBottom);
-
     updateAxes(flat);
 
     const byState = d3.group(flat, d => d.state);
@@ -257,14 +252,40 @@ function updateVis(){
         .attr('class', 'line')
         .attr('fill', 'none')
         .attr('stroke', ([state]) => colorScale(state))
-        .attr('stroke-width', 1.5)
+        .attr('stroke-width', ([state]) => {
+            if (state === selectedState){
+                return 3;
+            }
+            return 1.5
+        })
+        .attr('opacity', ([state]) => {
+            if (selectedState === null || state === selectedState ){
+                return 1;
+            }
+            return 0.15;
+        })
+        .style('cursor', 'pointer')
+        .on('click', (event, [state]) => {
+            if (selectedState === state) {
+                selectedState = null;
+            } else {
+                selectedState = state;
+            }
+
+            updateVis();
+        })
         .transition(t)
-        .attr('d', ([, values]) => line(values.sort((a, b) =>
-            filterVar === "Year"
-                ? monthNames.indexOf(a.date) - monthNames.indexOf(b.date)
-                : a.date - b.date
-        )))
-        return line(values);
+        .attr('d', ([, values]) => {
+            values.sort((a, b) => {
+                if (filterVar === "Year") {
+                    return monthNames.indexOf(a.date) - monthNames.indexOf(b.date);
+                }
+                return a.date - b.date;
+            });
+            return line(values);
+        })
+    
+        
 
 }
 
