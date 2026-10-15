@@ -304,15 +304,15 @@ function updateVis(){
                 .style('stroke-width', '3px');
         })
         .on('mousemove', function (event, [state, values]) {
-            const [mx] = d3.pointer(event);
-            const domainValue = xScale.domain()[Math.floor(mx / xScale.step())];
-            const point = values.find(v => v.date === domainValue);
+            // values holds every month's (or day's) total for this line; summing
+            // the whole thing gives the year total (Full Year) or month total (Month view).
+            const total = d3.sum(values, v => v.value);
 
             d3.select('#tooltip')
                 .style('display', 'block') // Make the tooltip visible
                 .html( // Change the html content of the <div> directly
                 `<strong>${state}</strong><br/>
-                Total ${yVar}: ${point?.value?.toFixed(2) ?? '—'}`)
+                Total ${yVar}: ${total.toFixed(2)}`)
                 .style('left', (event.pageX + 20) + 'px')
                 .style('top', (event.pageY - 28) + 'px');
         })
