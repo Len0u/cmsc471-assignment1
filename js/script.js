@@ -61,6 +61,17 @@ const svg = d3.select('#vis')
     .append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
 
+// Zoom & pan on the chart
+const zoom = d3.zoom()
+    .scaleExtent([1, 8])
+    .on('zoom', (event) => {
+        svg.attr('transform',
+            `translate(${margin.left + event.transform.x},${margin.top + event.transform.y}) scale(${event.transform.k})`
+        );
+    });
+
+d3.select('#vis svg').call(zoom);
+
 function init(){
     d3.csv("./weather.csv", 
     function(d){
@@ -271,6 +282,31 @@ function updateVis(){
             }
 
             updateVis();
+        })
+        .on('mouseover', function (event, [state, values]) {
+            d3.select(this) // Refers to the hovered line
+                .style('stroke', 'black')
+                .style('stroke-width', '3px');
+        })
+        .on('mousemove', function (event, [state, values]) {
+            const [mx] = d3.pointer(event);
+            const domainValue = xScale.domain()[Math.floor(mx / xScale.step())];
+            const point = values.find(v => v.date === domainValue);
+
+            d3.select('#tooltip')
+                .style('display', 'block') // Make the tooltip visible
+                .html( // Change the html content of the <div> directly
+                `<strong>${state}</strong><br/>
+                ${yVar}: ${point?.value?.toFixed(2) ?? '—'}`)
+                .style('left', (event.pageX + 20) + 'px')
+                .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function (event, [state]) {
+            d3.select('#tooltip')
+                .style('display', 'none') // Hide tooltip when cursor leaves
+            d3.select(this) // Refers to the line that the cursor left
+                .style('stroke', null)
+                .style('stroke-width', null);
         })
         .transition(t)
         .attr('d', ([, values]) => {
