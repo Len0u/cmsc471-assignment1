@@ -217,7 +217,7 @@ function updateAxes(flat){
     svg.append("text")
         .attr("transform", "rotate(-90)")
         .attr("x", -height / 2)
-        .attr("y", -margin.left + 20)
+        .attr("y", -margin.left + 40)
         .attr("text-anchor", "middle")
         .text(yVar)
         .attr('class', 'labels')
