@@ -16,6 +16,18 @@ const weatherKeys = { Precipitation: "precipitation", Snow: "snow" };
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun","Jul", "Aug", "Sep"];
 const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
+const regionByState = {
+    CT:'Northeast', ME:'Northeast', MA:'Northeast', NH:'Northeast', RI:'Northeast', VT:'Northeast', NJ:'Northeast', NY:'Northeast', PA:'Northeast',
+    IL:'Midwest', IN:'Midwest', MI:'Midwest', OH:'Midwest', WI:'Midwest', IA:'Midwest', KS:'Midwest', MN:'Midwest', MO:'Midwest', NE:'Midwest', ND:'Midwest', SD:'Midwest',
+    DE:'South', FL:'South', GA:'South', MD:'South', NC:'South', SC:'South', VA:'South', WV:'South', AL:'South', KY:'South', MS:'South', TN:'South', AR:'South', LA:'South', OK:'South', TX:'South',
+    AZ:'West', CO:'West', ID:'West', MT:'West', NV:'West', NM:'West', UT:'West', WY:'West', AK:'West', CA:'West', HI:'West', OR:'West', WA:'West',
+};
+function regionOf(state){
+    return regionByState[state] || 'Other'; // Canadian provinces & US territories bucket here
+}
+
+let viewLevel = 'region'; // 'region' | 'state'
+let activeRegion = null;
 let selectedState = null;
 const t = 1000; // 1000ms = 1 second
 let size = 10;  // Size of the legend squares
@@ -24,27 +36,31 @@ let label;
 
 function aggregateData(mode, filter){
     const weatherType = weatherKeys[mode];
+    const scopedData = viewLevel === 'state'
+        ? allData.filter(d => regionOf(d.state) === activeRegion)
+        : allData;
+    const groupKey = viewLevel === 'state' ? (d => d.state) : (d => regionOf(d.state));
 
     if (filter == "Year"){
         // full year view
         const fullYearView = d3.rollup(
-            allData,
-            v => d3.mean(v, d => d[weatherType]),
-            d => d.state,
+            scopedData,
+            v => d3.sum(v, d => d[weatherType]),
+            groupKey,
             d => d.date.getMonth()
         );
 
         return fullYearView
     }
     else if (filter == "Months") {
-        const currentData = allData.filter(d =>
+        const currentData = scopedData.filter(d =>
             d.date.getMonth() + 1 === targetMonth
         );
         // Month view
         const monthlyView = d3.rollup(
             currentData,
-            v => d3.mean(v, d => d[weatherType]),
-            d => d.state,
+            v => d3.sum(v, d => d[weatherType]),
+            groupKey,
             d => d.date.getDate()
         );
 
@@ -60,6 +76,17 @@ const svg = d3.select('#vis')
     .attr('height', height + margin.top + margin.bottom)
     .append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
+
+// Zoom & pan on the chart
+const zoom = d3.zoom()
+    .scaleExtent([1, 8])
+    .on('zoom', (event) => {
+        svg.attr('transform',
+            `translate(${margin.left + event.transform.x},${margin.top + event.transform.y}) scale(${event.transform.k})`
+        );
+    });
+
+d3.select('#vis svg').call(zoom);
 
 function init(){
     d3.csv("./weather.csv", 
@@ -162,6 +189,13 @@ function setupSelector(){
         d3.select('#slider').style('display', 'block');
     }
 
+    d3.select('#backToRegions').on('click', () => {
+        viewLevel = 'region';
+        activeRegion = null;
+        selectedState = null;
+        d3.select('#backToRegions').style('display', 'none');
+        updateVis();
+    });
 }
 function getDaysInMonth(month, year = targetYear) {
     return new Date(year, month, 0).getDate();
@@ -263,14 +297,31 @@ function updateVis(){
             return 0.15;
         })
         .style('cursor', 'pointer')
-        .on('click', (event, [state]) => {
-            if (selectedState === state) {
-                selectedState = null;
-            } else {
-                selectedState = state;
-            }
+        .on('click', (event, [state]) => handleEntityClick(state))
+        .on('mouseover', function (event, [state, values]) {
+            d3.select(this) // Refers to the hovered line
+                .style('stroke', 'black')
+                .style('stroke-width', '3px');
+        })
+        .on('mousemove', function (event, [state, values]) {
+            const [mx] = d3.pointer(event);
+            const domainValue = xScale.domain()[Math.floor(mx / xScale.step())];
+            const point = values.find(v => v.date === domainValue);
 
-            updateVis();
+            d3.select('#tooltip')
+                .style('display', 'block') // Make the tooltip visible
+                .html( // Change the html content of the <div> directly
+                `<strong>${state}</strong><br/>
+                Total ${yVar}: ${point?.value?.toFixed(2) ?? '—'}`)
+                .style('left', (event.pageX + 20) + 'px')
+                .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function (event, [state]) {
+            d3.select('#tooltip')
+                .style('display', 'none') // Hide tooltip when cursor leaves
+            d3.select(this) // Refers to the line that the cursor left
+                .style('stroke', null)
+                .style('stroke-width', null);
         })
         .transition(t)
         .attr('d', ([, values]) => {
@@ -282,9 +333,69 @@ function updateVis(){
             });
             return line(values);
         })
-    
-        
 
+    const periodLabel = filterVar === 'Year'
+        ? 'Full Year 2017'
+        : `${d3.timeFormat('%B')(new Date(2017, targetMonth - 1, 1))} 2017`;
+    const scopeLabel = viewLevel === 'region' ? 'by Region' : `by State in ${activeRegion}`;
+    d3.select('#value').text(`Total ${yVar} ${scopeLabel} — ${periodLabel}`);
+
+    updateLegend(Array.from(byState.keys()));
+}
+
+function handleEntityClick(state){
+    if (viewLevel === 'region') {
+        activeRegion = state;
+        viewLevel = 'state';
+        selectedState = null;
+        d3.select('#backToRegions').style('display', 'inline-block');
+    } else if (selectedState === state) {
+        selectedState = null;
+    } else {
+        selectedState = state;
+    }
+    updateVis();
+}
+
+function updateLegend(states){
+    const itemsPerRow = Math.max(1, Math.floor(width / 80));
+
+    const legendItems = svg.selectAll('.legend-item')
+        .data(states, d => d);
+
+    legendItems.exit().remove();
+
+    const entered = legendItems.enter()
+        .append('g')
+        .attr('class', 'legend-item')
+        .style('cursor', 'pointer');
+
+    entered.append('rect').attr('width', 10).attr('height', 10);
+    entered.append('text').attr('x', 16).attr('y', 10).style('font-size', '12px');
+
+    const merged = entered.merge(legendItems);
+
+    merged.attr('transform', (d, i) => {
+        const row = Math.floor(i / itemsPerRow);
+        const col = i % itemsPerRow;
+        return `translate(${col * 80}, ${-margin.top + 20 + row * 18})`;
+    });
+
+    merged.select('rect').attr('fill', d => colorScale(d));
+    merged.select('text').text(d => d);
+
+    merged
+        .on('click', (event, state) => handleEntityClick(state))
+        .on('mouseover', (event, state) => {
+            svg.selectAll('.line').filter(([s]) => s === state)
+                .style('stroke', 'black')
+                .style('stroke-width', '3px');
+        })
+        .on('mouseout', (event, state) => {
+            svg.selectAll('.line').filter(([s]) => s === state)
+                .style('stroke', null)
+                .style('stroke-width', null);
+        });
 }
 
 // function addLegend(){
