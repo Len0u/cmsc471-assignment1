@@ -251,7 +251,7 @@ function updateAxes(flat){
     svg.append("text")
         .attr("transform", "rotate(-90)")
         .attr("x", -height / 2)
-        .attr("y", -margin.left + 20)
+        .attr("y", -margin.left + 40)
         .attr("text-anchor", "middle")
         .text(yVar)
         .attr('class', 'labels')
@@ -398,89 +398,4 @@ function updateLegend(states){
         });
 }
 
-// function addLegend(){
-// // Your turn, draw a set of rectangles using D3
-//     svg.selectAll('rect')
-//         .data(continents)
-//         .enter()
-//         .append('rect')
-//         .attr("y", -margin.top/2 + size - 10) 
-//         .attr("x", (d, i) => i * (size + 100) + 100)
-//         .attr('width', 10)
-//         .attr('height', 10)
-//         .style("fill", d => colorScale(d)) 
-
-//     svg.selectAll("continentName")
-//         .data(continents)
-//         .enter()
-//         .append("text")
-//         .attr("y", -margin.top/2 + size) // Align vertically with the square
-//         .attr("x", (d, i) => i * (size + 100) + 120)  
-//         .style("fill", d => colorScale(d))  // Match text color to the square
-//         .text(d => d) // The actual continent name
-//         .attr("text-anchor", "left")
-//         .style('font-size', '13px')
-// }
-
 window.addEventListener('load', init);
-
-
-
-/*
-
-_____________________________CODE GRAVEYARD______________________
-svg.selectAll('.line')
-        .data(byState, ([state]) => state)
-        .join(
-            function(enter){
-                return enter
-                .join('path')
-                .attr('class', 'line')
-                .attr('fill', 'none')
-                .attr('stroke', ([state]) => colorScale(state))
-                .attr('stroke-width', 1.5)
-                .transition(t)
-                .attr('d', ([, values]) => line(values.sort((a, b) =>
-                    filterVar === "Year"
-                        ? monthNames.indexOf(a.date) - monthNames.indexOf(b.date)
-                        : a.date - b.date
-                )))
-                // .on('mouseover', function (event, d) {
-                //     console.log(d) // See the data point in the console for debugging
-                //     d3.select('#tooltip')
-                //     .style("display", 'block') // Make the tooltip visible
-                //     .html( // Change the html content of the <div> directly
-                //     `<strong>${d.state}</strong><br/>
-                //     Precipitation (in): ${d.precipitation}`)
-                //     .style("left", (event.pageX + 20) + "px")
-                //     .style("top", (event.pageY - 28) + "px")
-                //     d3.select(this) // Refers to the hovered circle
-                //     .style('stroke', 'black')
-                //     .style('stroke-width', '1px');
-                // })
-                // .on("mouseout", function (event, d) {
-                //     d3.select('#tooltip')
-                //     .style('display', 'none') // Hide tooltip when cursor leaves
-                //     d3.select(this) // Refers to the hovered circle
-                //     .style('stroke', 'none')
-                // })
-                .transition(t)                        
-            },
-            function(update){
-                return update
-                .transition(t)
-                .attr('stroke', ([state]) => colorScale(state))
-                .attr('d', ([, values]) =>
-                    line(values.sort((a, b) => a.date - b.date))
-                )
-            },
-            function(exit){
-                exit
-                .transition(t)
-                .remove()
-            }
-        )
-}
-
-
-*/
