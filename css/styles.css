@@ -1,21 +1,40 @@
 /* Reset default styles */
 * {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', Arial, sans-serif;
     max-width: 800px;
     margin: 0px auto;
     line-height: 1.8;
+}
+
+body {
+    background-color: #e6f2fb;
 }
 
 /* Container styling for layout */
 .container {
     max-width: 800px;
     margin: 2rem auto;
+    color: #1f2d3d;
+}
+
+h1 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.container > p {
+    margin-bottom: 1.25rem;
+}
+
+/* Keep the chart in its original font */
+#vis svg * {
     font-family: Arial, sans-serif;
 }
 
 #vis svg {
     margin: 2rem 0;
     border: 1px solid #ccc; /*otherwise you can't see this part*/
+    background: white;
 }
 
 .x-axis path,
@@ -38,9 +57,18 @@
 }
 
 .btn {
+    border: 1px solid #ccc;
     border-radius: 5px;
-    background-color: black;
-    color:aliceblue;
+    background-color: white;
+    color: #333;
+    padding: 2px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.btn:hover {
+    background-color: #cfe6f7;
 }
 
 #tooltip {
@@ -51,4 +79,30 @@
     border-radius: 4px;
     pointer-events: none; /* Prevent tooltip from interfering with mouse events */
     font-size: 12px;
+}
+
+.toggle {
+    display: inline-flex;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    vertical-align: middle;
+    margin-right: 24px;
+}
+
+.toggle button {
+    border: none;
+    background: white;
+    padding: 2px 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.toggle button.active {
+    background: #cfe6f7;
+}
+
+.chart-title {
+    font-size: 18px;
+    font-weight: bold;
 }

@@ -4,18 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assignment 1: Interactive Visualization with D3.js</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
     <div class="container"> <!-- Centers content and sets max width -->
-        <h1>Assignment 1: Interactive Visualization with D3.js</h1>
-        <p id="value"></p>
+        <h1>US Precipitation Explorer (2017)</h1>
+        <p>Welcome! Use the below line chart to explore precipitation or snowfall levels across the US in 2017 by region, state, and month.</p>
         <div id="slider"></div> 
 
         <div id="controls">
-            Y: <select id="yVariable" class="variable"></select>
-            Filter Data: <select id="filter" class="filter"></select>
+            <div id="yToggle" class="toggle">
+                <button data-value="Precipitation" title="Precipitation">&#x1F4A7;</button><button data-value="Snow" title="Snowfall">&#x2744;&#xFE0F;</button>
+            </div>
+            <div id="filterToggle" class="toggle">
+                <button data-value="Months">months</button><button data-value="Year">year</button>
+            </div>
             <button id="backToRegions" class="btn" style="display:none">&larr; Back to regions</button>
         </div>
 

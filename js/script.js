@@ -1,4 +1,4 @@
-const margin = { top: 80, right: 60, bottom: 60, left: 100 };
+const margin = { top: 110, right: 60, bottom: 60, left: 100 };
 const width = 800 - margin.left - margin.right;
 const height = 600 - margin.top - margin.bottom;
 
@@ -138,17 +138,10 @@ function setupSelector(){
     
     d3.select('#slider').style('display', 'none');
  
-    d3.select('.filter')
-        .each(function() {
-            d3.select(this).selectAll('myOptions')
-            .data(filterOptions)
-            .enter()
-            .append('option')
-            .text(d => d) // The displayed text
-            .attr("value",d => d) // The actual value used in the code
-        })
-        .on("change", function (event) {
-            filterVar = d3.select(this).property("value");
+    d3.selectAll('#filterToggle button')
+        .on("click", function (event) {
+            filterVar = this.dataset.value;
+            d3.selectAll('#filterToggle button').classed('active', function() { return this.dataset.value === filterVar; });
             xVar = xVarByFilter[filterVar];
 
             if (filterVar == "Months"){
@@ -161,24 +154,16 @@ function setupSelector(){
             updateVis();
         })
 
-    d3.select('.variable')
-        .each(function() {
-            d3.select(this).selectAll('myOptions')
-            .data(yOptions)
-            .enter()
-            .append('option')
-            .text(d => d) // The displayed text
-            .attr("value",d => d) // The actual value used in the code
-        })
-        .on("change", function (event) {
-            console.log(d3.select(this).property("value")) // Logs the selected value
-            yVar = d3.select(this).property("value");
+    d3.selectAll('#yToggle button')
+        .on("click", function (event) {
+            yVar = this.dataset.value;
+            d3.selectAll('#yToggle button').classed('active', function() { return this.dataset.value === yVar; });
             updateVis();
         })
 
 
-    d3.select('#filter').property('value', filterVar)
-    d3.select('#yVariable').property('value', yVar)
+    d3.selectAll('#filterToggle button').classed('active', function() { return this.dataset.value === filterVar; });
+    d3.selectAll('#yToggle button').classed('active', function() { return this.dataset.value === yVar; });
 
     xVar = xVarByFilter[filterVar];
 
@@ -253,7 +238,7 @@ function updateAxes(flat){
         .attr("x", -height / 2)
         .attr("y", -margin.left + 40)
         .attr("text-anchor", "middle")
-        .text(yVar)
+        .text(yVar === 'Snow' ? 'Snowfall (inches)' : 'Precipitation (inches)')
         .attr('class', 'labels')
 }
 
@@ -335,10 +320,16 @@ function updateVis(){
         })
 
     const periodLabel = filterVar === 'Year'
-        ? 'Full Year 2017'
+        ? '2017'
         : `${d3.timeFormat('%B')(new Date(2017, targetMonth - 1, 1))} 2017`;
-    const scopeLabel = viewLevel === 'region' ? 'by Region' : `by State in ${activeRegion}`;
-    d3.select('#value').text(`Total ${yVar} ${scopeLabel} — ${periodLabel}`);
+    svg.selectAll('.chart-title')
+        .data([null])
+        .join('text')
+        .attr('class', 'chart-title')
+        .attr('x', width / 2)
+        .attr('y', -margin.top + 35)
+        .attr('text-anchor', 'middle')
+        .text(`US ${yVar === 'Snow' ? 'Snowfall' : 'Precipitation'} Levels ${periodLabel}${viewLevel === 'state' ? ` (${activeRegion})` : ''}`);
 
     updateLegend(Array.from(byState.keys()));
 }
@@ -378,7 +369,7 @@ function updateLegend(states){
     merged.attr('transform', (d, i) => {
         const row = Math.floor(i / itemsPerRow);
         const col = i % itemsPerRow;
-        return `translate(${col * 80}, ${-margin.top + 20 + row * 18})`;
+        return `translate(${col * 80}, ${-margin.top + 55 + row * 18})`;
     });
 
     merged.select('rect').attr('fill', d => colorScale(d));
