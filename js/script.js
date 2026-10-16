@@ -12,6 +12,10 @@ const filterOptions = ['Year', 'Months']  // if filtering by month then xVar are
 
 const xVarByFilter = { Year: 'Month', Months: 'Day' };
 const weatherKeys = { Precipitation: "precipitation", Snow: "snow" };
+const yLabels = {
+    Precipitation: 'Precipitation (inches)',
+    Snow: 'Snow (inches)'
+};
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun","Jul", "Aug", "Sep"];
 const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
@@ -104,7 +108,6 @@ function init(){
             allData = data
             setupSelector()
             updateVis()
-            // addLegend()
         })
     .catch(error => console.error('Error loading data:', error));
 }
@@ -253,7 +256,7 @@ function updateAxes(flat){
         .attr("x", -height / 2)
         .attr("y", -margin.left + 40)
         .attr("text-anchor", "middle")
-        .text(yVar)
+            .text(yLabels[yVar])
         .attr('class', 'labels')
 }
 
